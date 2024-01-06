@@ -210,6 +210,20 @@ def betterInputOptions(
         )
 
 
+# Input method that requires any key to continue.
+def betterInputPressEnterToContinue(
+    statement: str, label: str | None = None, color: color | None = None
+) -> None:
+    "Create an input bubble that only expects the ENTER key to be pressed."
+    setColor = green
+    if color != None:
+        setColor = color
+    input(
+        f"{createTextBubble(statement, label, setColor)}\n{setColor.replace('Press ENTER to continue...', 'Press ENTER to continue...')} "
+    )
+    return None
+
+
 # Class for coloring specific parts of a string.
 class colorReplacer:
     "String color replacer class."
