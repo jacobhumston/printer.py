@@ -20,6 +20,9 @@ _RESET, _RED, _BLUE, _GREEN, _YELLOW, _MAGENTA = (
     colorama.Fore.MAGENTA,
 )
 
+# Define color type.
+type color = red | blue | green | yellow | magenta
+
 
 # This function clears the console.
 def clearConsole() -> None:
@@ -54,28 +57,45 @@ def colorFixedLen(string: str) -> int:
 
 
 # Function to create a text bubble.
-def createTextBubble(text: str, label: str | None = None) -> int:
+def createTextBubble(
+    text: str, label: str | None = None, colorOverride: color | None = None
+) -> int:
     "Create a text bubble."
 
-    line = green.replace(dupString("─", colorFixedLen(text) + 2), "─")
-    side = green.replace("│", "│")
-    corner1 = green.replace("╭", "╭")
-    corner2 = green.replace("╮", "╮")
-    corner3 = green.replace("╯", "╯")
-    corner4 = green.replace("╰", "╰")
+    color = green
+    if colorOverride != None:
+        color = colorOverride
+
+    line = color.replace(dupString("─", colorFixedLen(text) + 2), "─")
+    side = color.replace("│", "│")
+    corner1 = color.replace("╭", "╭")
+    corner2 = color.replace("╮", "╮")
+    corner3 = color.replace("╯", "╯")
+    corner4 = color.replace("╰", "╰")
+    labelIsBigger = False
+
+    if label != None:
+        if colorFixedLen(line) < colorFixedLen(label) + 3:
+            line = color.replace(dupString("─", colorFixedLen(label) + 3), "─")
+            labelIsBigger = True
 
     lines = text.split("\n")
     for index, part in enumerate(lines):
         lines[
             index
         ] = f"{side} {part}{dupString(' ', colorFixedLen(text) + 1 - colorFixedLen(part))}{side}"
+        if label != None:
+            if labelIsBigger == True:
+                lines[
+                    index
+                ] = f"{side} {part}{dupString(' ', colorFixedLen(label) + 2 - colorFixedLen(part))}{side}"
 
     if label != None:
-        label = green.replace(label, label)
-        line2 = green.replace(
+        label = color.replace(label, label)
+        line2 = color.replace(
             dupString("─", (colorFixedLen(text) - colorFixedLen(label) - 3) + 2), "─"
         )
-        line2Part = green.replace("─", "─")
+        line2Part = color.replace("─", "─")
 
         return f"{corner1}{line2Part} {label} {line2}{corner2}\n{f'\n'.join(lines)}\n{corner4}{line}{corner3}"
     else:
@@ -87,26 +107,7 @@ def createTextBubble(text: str, label: str | None = None) -> int:
 # Function to create a warning text bubble.
 def createWarningBubble(text: str) -> int:
     "Create a text bubble."
-
-    label = yellow.replace(" Warning! ", " Warning! ")
-    line1 = yellow.replace(dupString("─", colorFixedLen(text) + 2), "─")
-    line2 = yellow.replace(
-        dupString("─", (colorFixedLen(text) - colorFixedLen(label) - 1) + 2), "─"
-    )
-    line2Part = yellow.replace("─", "─")
-    side = yellow.replace("│", "│")
-    corner1 = yellow.replace("╭", "╭")
-    corner2 = yellow.replace("╮", "╮")
-    corner3 = yellow.replace("╯", "╯")
-    corner4 = yellow.replace("╰", "╰")
-
-    lines = text.split("\n")
-    for index, part in enumerate(lines):
-        lines[
-            index
-        ] = f"{side} {part}{dupString(' ', colorFixedLen(text) + 1 - colorFixedLen(part))}{side}"
-
-    return f"{corner1}{line2Part}{label}{line2}{corner2}\n{f'\n'.join(lines)}\n{corner4}{line1}{corner3}"
+    return createTextBubble(text, "Warning!", yellow)
 
 
 # This function creates a better looking input dialog.
@@ -189,12 +190,11 @@ def betterInputOptions(
 
     stringOptions = list(options)
     for index, option in enumerate(options):
-        stringOptions[index] = magenta.replace(
-            f"{index + 1}) {option}", f"{index + 1}) {option}"
-        )
+        numberString = magenta.replace(str(index + 1), str(index + 1))
+        stringOptions[index] = f"{numberString}{magenta.replace(')', ')')} {option}"
 
     result = input(
-        f"{createTextBubble(f'{question}\n{'\n'.join(stringOptions)}', label)}\n{green.replace('|>', '|>')} "
+        f"{createTextBubble(f'{question}\n{createTextBubble('\n'.join(stringOptions), 'Options', magenta)}', label)}\n{green.replace('|>', '|>')} "
     )
 
     clearConsole()
