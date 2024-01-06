@@ -27,7 +27,7 @@ type color = red | blue | green | yellow | magenta
 # This function clears the console.
 def clearConsole() -> None:
     "Clear the console."
-    os.system("cls")
+    os.system("cls" if os.name == "nt" else "clear")
     return None
 
 
@@ -59,7 +59,7 @@ def colorFixedLen(string: str) -> int:
 # Function to create a text bubble.
 def createTextBubble(
     text: str, label: str | None = None, colorOverride: color | None = None
-) -> int:
+) -> str:
     "Create a text bubble."
 
     color = green
@@ -107,7 +107,7 @@ def createTextBubble(
 # Function to create a warning text bubble.
 def createWarningBubble(text: str) -> int:
     "Create a text bubble."
-    return createTextBubble(text, "Warning!", yellow)
+    return createTextBubble(text, "Warning", yellow)
 
 
 # This function creates a better looking input dialog.
@@ -116,7 +116,7 @@ def betterInput(question: str, label: str | None = None) -> str:
     clearConsole()
 
     providedInput = input(
-        f"{createTextBubble(question, label)}\n{green.replace('|>', '|>')} "
+        f"{createTextBubble(question, label).replace('╰', '├')}\n{green.replace('│>', '│>')} "
     )
 
     clearConsole()
@@ -134,7 +134,9 @@ def betterInputInt(
     if warning != None:
         print(createWarningBubble(warning))
 
-    result = input(f"{createTextBubble(question, label)}\n{green.replace('|>', '|>')} ")
+    result = input(
+        f"{createTextBubble(question, label).replace('╰', '├')}\n{green.replace('│>', '│>')} "
+    )
 
     clearConsole()
 
@@ -142,7 +144,7 @@ def betterInputInt(
         return int(result)
     else:
         return betterInputInt(
-            question, label, f"'{red.replace(result, result)}' is not a valid integer!"
+            question, label, f"{red.replace(result, result)} is not a valid integer!"
         )
 
 
@@ -156,7 +158,9 @@ def betterInputFloat(
     if warning != None:
         print(createWarningBubble(warning))
 
-    result = input(f"{createTextBubble(question, label)}\n{green.replace('|>', '|>')} ")
+    result = input(
+        f"{createTextBubble(question, label).replace('╰', '├')}\n{green.replace('│>', '│>')} "
+    )
 
     clearConsole()
 
@@ -171,7 +175,7 @@ def betterInputFloat(
         return float(result)
     else:
         return betterInputFloat(
-            question, label, f"'{red.replace(result, result)}' is not a valid float!"
+            question, label, f"{red.replace(result, result)} is not a valid float!"
         )
 
 
@@ -194,7 +198,7 @@ def betterInputOptions(
         stringOptions[index] = f"{numberString}{magenta.replace(')', ')')} {option}"
 
     result = input(
-        f"{createTextBubble(f'{question}\n{createTextBubble('\n'.join(stringOptions), 'Options', magenta)}', label)}\n{green.replace('|>', '|>')} "
+        f"{createTextBubble(f'{question}\n{createTextBubble('\n'.join(stringOptions), 'Options', magenta)}', label).replace(green.replace('╰', '╰'), green.replace('├', '├'))}\n{green.replace('│>', '│>')} "
     )
 
     clearConsole()
@@ -206,7 +210,7 @@ def betterInputOptions(
             question,
             options,
             label,
-            f"'{red.replace(result, result)}' is not a valid option!\nPlease provide a number between {magenta.replace('1', '1')} and {magenta.replace(str(len(options)), str(len(options)))}.",
+            f"{red.replace(result, result)} is not a valid option!\nPlease provide a number between {magenta.replace('1', '1')} and {magenta.replace(str(len(options)), str(len(options)))}.",
         )
 
 
@@ -215,12 +219,18 @@ def betterInputPressEnterToContinue(
     statement: str, label: str | None = None, color: color | None = None
 ) -> None:
     "Create an input bubble that only expects the ENTER key to be pressed."
+
+    clearConsole()
+
     setColor = green
     if color != None:
         setColor = color
+
     input(
         f"{createTextBubble(statement, label, setColor)}\n{setColor.replace('Press ENTER to continue...', 'Press ENTER to continue...')} "
     )
+
+    clearConsole()
     return None
 
 
