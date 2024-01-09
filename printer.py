@@ -23,7 +23,6 @@ _RESET, _RED, _BLUE, _GREEN, _YELLOW, _MAGENTA = (
 # Define color type.
 type color = red | blue | green | yellow | magenta
 
-
 # This function clears the console.
 def clearConsole() -> None:
     "Clear the console."
