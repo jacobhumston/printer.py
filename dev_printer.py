@@ -257,6 +257,8 @@ def create_text_bubble(
                     index
                 ] = f"{side} {part}{duplicate_string(' ', get_string_length(label) + 2 - get_string_length(part))}{side}"
 
+    joined_lines = '\n'.join(lines)
+
     if label != None:
         label = color.new(label)
         line2 = color.new(
@@ -266,10 +268,10 @@ def create_text_bubble(
         )
         line2Part = color.replace("─", "─")
 
-        bubble = f"{corner1}{line2Part} {label} {line2}{corner2}\n{f'\n'.join(lines)}\n{corner4}{line}{corner3}"
+        bubble = f"{corner1}{line2Part} {label} {line2}{corner2}\n{joined_lines}\n{corner4}{line}{corner3}"
     else:
         bubble = (
-            f"{corner1}{line}{corner2}\n{f'\n'.join(lines)}\n{corner4}{line}{corner3}"
+            f"{corner1}{line}{corner2}\n{joined_lines}\n{corner4}{line}{corner3}"
         )
 
     if input_decorator == True:
