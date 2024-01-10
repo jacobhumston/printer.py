@@ -1,15 +1,46 @@
-###################################################
-# Printer Module
-# Created by Jacob Humston
-#
-# Util script for creating neat text bubbles,
-# along with other things you might find helpful!
-#
-# https://github.com/jacobhumston/printer.py
-###################################################
+#######################################################
+# Printer Module                                      #
+# Created by Jacob Humston                            #
+#                                                     #
+# Util script for creating neat text bubbles,         #
+# along with other things you might find helpful!     #
+#                                                     #
+# GITHUB: https://github.com/jacobhumston/printer.py  #
+#                                                     #
+# Credits to https://pastebin.com/0CMbB7EK for        #
+# the custom get_key implementation.                  #
+#######################################################
+# NOTES:                                              #
+# - RESET is considered a color.                      #
+# - Naming that starts with an underscore are         #
+# considered to be private.                           #
+#######################################################
 
 import os as _os
+import getpass as _getpass
+import sys as _sys
 from typing import Literal as _Literal
+
+if _sys.version_info[0] > 2:
+    from msvcrt import getwch as _getch
+else:
+    from msvcrt import _getch
+
+
+def get_keypress() -> str:
+    "Get a keypress."
+    c1 = _getch()
+    if c1 in ("\x00", "\xe0"):
+        arrows = {"H": "up", "P": "down", "M": "right", "K": "left"}
+        c2 = _getch()
+        return arrows.get(c2, c1 + c2)
+    elif c1 == "\r":
+        return "return"
+    elif c1 == "\t":
+        return "tab"
+    elif c1 == "\b":
+        return "backspace"
+    return c1
 
 
 class _OptionsCore:
@@ -135,6 +166,7 @@ all_colors = [
     Colors.black,
     Colors.red,
     Colors.green,
+    Colors.yellow,
     Colors.blue,
     Colors.magenta,
     Colors.cyan,
@@ -241,7 +273,7 @@ def create_text_bubble(
         )
 
     if input_decorator == True:
-        return f"{bubble.replace(corner4, color.new('├'))}\n{color.new('│>')}"
+        return f"{bubble.replace(corner4, color.new('├'))}\n{color.new('│>')} "
     else:
         return bubble
 
@@ -271,5 +303,72 @@ def print_text_bubble(
     return bubble
 
 
-class Input:
-    "Input class, used to get input in a variaty of ways."
+def create_warning_text_bubble(message: str):
+    """Create a warning text bubble.
+    \n`message` - The warning message.
+    """
+    return create_text_bubble(message, "Warning", Colors.yellow)
+
+
+class _InputCore:
+    "Input methods."
+
+    class _HiddenCore:
+        "Hidden input methods."
+
+        def str(
+            self,
+            text: str,
+            label: str | None = None,
+            color: Colors._ColorCore = Colors.green,
+            shape: _Literal["Round", "Square"] | None = None,
+            max: int = 99999999999999,
+            min: int = 1,
+            warning: str | None = None,
+        ) -> str:
+            "Hidden input."
+            current_input: str = ""
+            return_pressed: int = False
+            while return_pressed == False:
+                clear_console()
+
+                if warning != None:
+                    print(create_warning_text_bubble(warning))
+
+                bubble = create_text_bubble(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    input_decorator=True,
+                )
+                print(f"{bubble}{duplicate_string('*', len(current_input))}\n")
+
+                key = get_keypress()
+                if key == "return":
+                    return_pressed = True
+                elif key == "backspace":
+                    current_input = current_input[:-1]
+                elif len(key) == 1:
+                    current_input = f"{current_input}{key}"
+
+            clear_console()
+
+            if len(current_input) < min or len(current_input) > max:
+                return self.str(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    max=max,
+                    min=min,
+                    warning=f"Input must be between {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))} characters long.",
+                )
+
+            return current_input
+
+    hidden = _HiddenCore()
+    "Hidden input methods."
+
+
+input = _InputCore()
