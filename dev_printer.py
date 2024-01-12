@@ -11,13 +11,15 @@
 # the custom get_key implementation.                  #
 #######################################################
 # NOTES:                                              #
-# - RESET is considered a color.                      #
+# - Reset and italic are considered colors in terms   #
+# of classes and such.                                #
 # - Naming that starts with an underscore are         #
 # considered to be private.                           #
+# - To prevent conflicts, all public variables are    #
+# capitalized.                                        #
 #######################################################
 
 import os as _os
-import getpass as _getpass
 import sys as _sys
 from typing import Literal as _Literal
 
@@ -68,8 +70,8 @@ class _OptionsCore:
         return setattr(self, name, value)
 
 
-options = _OptionsCore()
-"Options used bt other methods of this module."
+Options = _OptionsCore()
+"Options used by other methods of this module."
 
 
 class ColorCodes:
@@ -101,6 +103,9 @@ class ColorCodes:
     reset: str = "\u001b[0m"
     "Reset color code."
 
+    italic: str = "\u001b[3m"
+    "Italic color code."
+
 
 class Colors:
     "Terminal colors."
@@ -116,7 +121,7 @@ class Colors:
             \n`string` - String to modify.
             \n`replacer` - Part(s) of `string` to replace with a colored variant.
             """
-            if options.no_colors == True:
+            if Options.no_colors == True:
                 return string
             return string.replace(replacer, f"{self.color}{replacer}{ColorCodes.reset}")
 
@@ -124,8 +129,9 @@ class Colors:
             """Returns a colored version of `string`.
             \n`string` - String to color.
             """
-            if options.no_colors == True:
+            if Options.no_colors == True:
                 return string
+            string = string.replace("\n", "{}\n{}".format(ColorCodes.reset, self.color))
             return f"{self.color}{string}{ColorCodes.reset}"
 
         def remove(self, string: str) -> str:
@@ -161,8 +167,11 @@ class Colors:
     reset = _ColorCore(ColorCodes.reset)
     "Reset color method."
 
+    italic = _ColorCore(ColorCodes.italic)
+    "Italic color method."
 
-all_colors = [
+
+AllColors = [
     Colors.black,
     Colors.red,
     Colors.green,
@@ -172,6 +181,7 @@ all_colors = [
     Colors.cyan,
     Colors.white,
     Colors.reset,
+    Colors.italic,
 ]
 "List of all colors, including reset."
 
@@ -197,7 +207,7 @@ def remove_all_colors(string: str) -> str:
     """Removes all the colors from a string.
     \n`string` - String to remove the colors from.
     """
-    for color in all_colors:
+    for color in AllColors:
         string = color.remove(string)
     return string
 
@@ -233,7 +243,7 @@ def create_text_bubble(
     corner4 = color.new("╰")
     bubble = ""
 
-    shape = shape or options.text_bubble_shape
+    shape = shape or Options.text_bubble_shape
     if shape == "Square":
         corner1 = color.new("┌")
         corner2 = color.new("┐")
@@ -257,7 +267,7 @@ def create_text_bubble(
                     index
                 ] = f"{side} {part}{duplicate_string(' ', get_string_length(label) + 2 - get_string_length(part))}{side}"
 
-    joined_lines = '\n'.join(lines)
+    joined_lines = "\n".join(lines)
 
     if label != None:
         label = color.new(label)
@@ -270,9 +280,7 @@ def create_text_bubble(
 
         bubble = f"{corner1}{line2Part} {label} {line2}{corner2}\n{joined_lines}\n{corner4}{line}{corner3}"
     else:
-        bubble = (
-            f"{corner1}{line}{corner2}\n{joined_lines}\n{corner4}{line}{corner3}"
-        )
+        bubble = f"{corner1}{line}{corner2}\n{joined_lines}\n{corner4}{line}{corner3}"
 
     if input_decorator == True:
         return f"{bubble.replace(corner4, color.new('├'))}\n{color.new('│>')} "
@@ -318,7 +326,7 @@ class _InputCore:
     class _HiddenCore:
         "Hidden input methods."
 
-        def str(
+        def string(
             self,
             text: str,
             label: str | None = None,
@@ -328,7 +336,15 @@ class _InputCore:
             min: int = 1,
             warning: str | None = None,
         ) -> str:
-            "Hidden input."
+            """Hidden input that always returns a string.
+            \n`text` - The text to put inside the bubble.
+            \n`label` - The label of this text bubble.
+            \n`color` - The color of this text bubble.
+            \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+            \n`max` - Maximum length of the string allowed.
+            \n`min` - Minimum length of the string allowed.
+            \n`warning` - Warning message to display.
+            """
             current_input: str = ""
             return_pressed: int = False
             while return_pressed == False:
@@ -357,7 +373,7 @@ class _InputCore:
             clear_console()
 
             if len(current_input) < min or len(current_input) > max:
-                return self.str(
+                return self.string(
                     text=text,
                     label=label,
                     color=color,
@@ -369,8 +385,399 @@ class _InputCore:
 
             return current_input
 
+        def integer(
+            self,
+            text: str,
+            label: str | None = None,
+            color: Colors._ColorCore = Colors.green,
+            shape: _Literal["Round", "Square"] | None = None,
+            max: int | float = 99999999999999,
+            min: int | float = -999999999999,
+            warning: str | None = None,
+        ) -> int:
+            """Hidden input that always returns an int.
+            \n`text` - The text to put inside the bubble.
+            \n`label` - The label of this text bubble.
+            \n`color` - The color of this text bubble.
+            \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+            \n`max` - Maximum number allowed.
+            \n`min` - Minimum number allowed.
+            \n`warning` - Warning message to display.
+            """
+            result = self.string(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                max=15,
+                min=1,
+                warning=warning,
+            )
+            if result.isnumeric() == True:
+                number = int(result)
+                if not number >= min or not number <= max:
+                    return self.integer(
+                        text=text,
+                        label=label,
+                        color=color,
+                        shape=shape,
+                        max=max,
+                        min=min,
+                        warning=f"Input must be a number (integer) {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))}.",
+                    )
+                else:
+                    return number
+            else:
+                return self.integer(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    max=max,
+                    min=min,
+                    warning="Input must be a number (integer).",
+                )
+
+        def float(
+            self,
+            text: str,
+            label: str | None = None,
+            color: Colors._ColorCore = Colors.green,
+            shape: _Literal["Round", "Square"] | None = None,
+            max: int | float = 99999999999999,
+            min: int | float = -999999999999,
+            warning: str | None = None,
+        ) -> float:
+            """Hidden input that always returns a float.
+            \n`text` - The text to put inside the bubble.
+            \n`label` - The label of this text bubble.
+            \n`color` - The color of this text bubble.
+            \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+            \n`max` - Maximum number allowed.
+            \n`min` - Minimum number allowed.
+            \n`warning` - Warning message to display.
+            """
+            result = self.string(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                max=30,
+                min=1,
+                warning=warning,
+            )
+            is_float: bool = True
+            try:
+                float(result)
+            except:
+                is_float = False
+
+            if is_float == True:
+                number = float(result)
+                if not number >= min or not number <= max:
+                    return self.float(
+                        text=text,
+                        label=label,
+                        color=color,
+                        shape=shape,
+                        max=max,
+                        min=min,
+                        warning=f"Input must be a number (float) between {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))}.",
+                    )
+                else:
+                    return number
+            else:
+                return self.float(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    max=max,
+                    min=min,
+                    warning="Input must be a number (float).",
+                )
+
     hidden = _HiddenCore()
     "Hidden input methods."
 
+    def string(
+        self,
+        text: str,
+        label: str | None = None,
+        color: Colors._ColorCore = Colors.green,
+        shape: _Literal["Round", "Square"] | None = None,
+        max: int = 99999999999999,
+        min: int = 1,
+        warning: str | None = None,
+    ) -> str:
+        """Input that always returns a string.
+        \n`text` - The text to put inside the bubble.
+        \n`label` - The label of this text bubble.
+        \n`color` - The color of this text bubble.
+        \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+        \n`max` - Maximum length of the string allowed.
+        \n`min` - Minimum length of the string allowed.
+        \n`warning` - Warning message to display.
+        """
 
-input = _InputCore()
+        clear_console()
+
+        if warning != None:
+            print(create_warning_text_bubble(warning))
+
+        bubble = create_text_bubble(
+            text=text,
+            label=label,
+            color=color,
+            shape=shape,
+            input_decorator=True,
+        )
+
+        current_input = input(bubble)
+
+        clear_console()
+
+        if len(current_input) < min or len(current_input) > max:
+            return self.string(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                max=max,
+                min=min,
+                warning=f"Input must be between {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))} characters long.",
+            )
+
+        return current_input
+
+    def integer(
+        self,
+        text: str,
+        label: str | None = None,
+        color: Colors._ColorCore = Colors.green,
+        shape: _Literal["Round", "Square"] | None = None,
+        max: int | float = 99999999999999,
+        min: int | float = -999999999999,
+        warning: str | None = None,
+    ) -> int:
+        """Input that always returns an int.
+        \n`text` - The text to put inside the bubble.
+        \n`label` - The label of this text bubble.
+        \n`color` - The color of this text bubble.
+        \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+        \n`max` - Maximum number allowed.
+        \n`min` - Minimum number allowed.
+        \n`warning` - Warning message to display.
+        """
+        result = self.string(
+            text=text,
+            label=label,
+            color=color,
+            shape=shape,
+            max=15,
+            min=1,
+            warning=warning,
+        )
+        if result.isnumeric() == True:
+            number = int(result)
+            if not number >= min or not number <= max:
+                return self.integer(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    max=max,
+                    min=min,
+                    warning=f"Input must be a number (integer) {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))}.",
+                )
+            else:
+                return number
+        else:
+            return self.integer(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                max=max,
+                min=min,
+                warning="Input must be a number (integer).",
+            )
+
+    def float(
+        self,
+        text: str,
+        label: str | None = None,
+        color: Colors._ColorCore = Colors.green,
+        shape: _Literal["Round", "Square"] | None = None,
+        max: int | float = 99999999999999,
+        min: int | float = -999999999999,
+        warning: str | None = None,
+    ) -> float:
+        """Input that always returns a float.
+        \n`text` - The text to put inside the bubble.
+        \n`label` - The label of this text bubble.
+        \n`color` - The color of this text bubble.
+        \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+        \n`max` - Maximum number allowed.
+        \n`min` - Minimum number allowed.
+        \n`warning` - Warning message to display.
+        """
+        result = self.string(
+            text=text,
+            label=label,
+            color=color,
+            shape=shape,
+            max=30,
+            min=1,
+            warning=warning,
+        )
+        is_float: bool = True
+        try:
+            float(result)
+        except:
+            is_float = False
+
+        if is_float == True:
+            number = float(result)
+            if not number >= min or not number <= max:
+                return self.float(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    max=max,
+                    min=min,
+                    warning=f"Input must be a number (float) between {Colors.blue.new(str(min))} and {Colors.blue.new(str(max))}.",
+                )
+            else:
+                return number
+        else:
+            return self.float(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                max=max,
+                min=min,
+                warning="Input must be a number (float).",
+            )
+
+    def select(
+        self,
+        text: str,
+        options: list[str],
+        label: str | None = None,
+        color: Colors._ColorCore = Colors.green,
+        shape: _Literal["Round", "Square"] | None = None,
+        selected_option: int | None = None,
+        hide_instructions: bool = False,
+    ) -> int:
+        """Input that always returns an index (int) of the selected option.
+        \n`text` - The text to put inside the bubble.
+        \n`options` - List of string options to select from.
+        \n`label` - The label of this text bubble.
+        \n`color` - The color of this text bubble.
+        \n`shape` - Shape of the text bubble. Overrides `<options>.text_bubble_shape`.
+        \n`selected_option` - Currently selected option. Can be used to modify the default selected with a custom one.
+        \n`hide_instructions` - If true, the instructions explaining on how change the current selection will be removed.
+        """
+        selected_option = selected_option or 1
+        options_string = ""
+        for index, option in enumerate(options):
+            if index > 0:
+                options_string += "\n"
+            if selected_option == index + 1:
+                options_string += Colors.yellow.new(f"➜  {option}")
+            else:
+                options_string += Colors.magenta.new(f"•  {option}")
+        instructions = Colors.italic.new(
+            Colors.magenta.new(
+                "Use the up and down arrow keys to change\nthe currently selected option."
+            )
+        )
+        options_bubble = create_text_bubble(
+            text=f"{instructions}\n\n{options_string}",
+            label="Options",
+            input_decorator=False,
+            shape=shape,
+            color=Colors.magenta,
+        )
+        if hide_instructions == True:
+            options_bubble = create_text_bubble(
+                text=f"{options_string}",
+                label="Options",
+                input_decorator=False,
+                shape=shape,
+                color=Colors.magenta,
+            )
+        clear_console()
+        print_text_bubble(
+            text=f"{text}\n{options_bubble}",
+            label=label,
+            color=color,
+            input_decorator=False,
+            shape=shape,
+        )
+        result = get_keypress()
+        if result == "return":
+            clear_console()
+            return selected_option
+        if result == "down":
+            selected_option += 1
+            if selected_option < 1 or selected_option > len(options):
+                selected_option -= 1
+                return self.select(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    options=options,
+                    selected_option=selected_option,
+                    hide_instructions=hide_instructions,
+                )
+            else:
+                return self.select(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    options=options,
+                    selected_option=selected_option,
+                    hide_instructions=hide_instructions,
+                )
+        elif result == "up":
+            selected_option -= 1
+            if selected_option < 1 or selected_option > len(options):
+                selected_option += 1
+                return self.select(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    options=options,
+                    selected_option=selected_option,
+                    hide_instructions=hide_instructions,
+                )
+            else:
+                return self.select(
+                    text=text,
+                    label=label,
+                    color=color,
+                    shape=shape,
+                    options=options,
+                    selected_option=selected_option,
+                    hide_instructions=hide_instructions,
+                )
+        else:
+            return self.select(
+                text=text,
+                label=label,
+                color=color,
+                shape=shape,
+                options=options,
+                selected_option=selected_option,
+                hide_instructions=hide_instructions,
+            )
+
+
+Input = _InputCore()

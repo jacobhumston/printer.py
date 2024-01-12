@@ -1,6 +1,5 @@
 import dev_printer as p
 
 
-
-i = p.input.hidden.str("please provide a message", "Something Idk", max=5)
+i = p.Input.select("please select an option", ["example option", "another example option", "ANOTHER example option"], "heyy", hide_instructions=True)
 print(i)
