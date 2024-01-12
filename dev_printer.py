@@ -711,13 +711,14 @@ class _InputCore:
                 color=Colors.magenta,
             )
         clear_console()
-        print_text_bubble(
+        bubble = create_text_bubble(
             text=f"{text}\n{options_bubble}",
             label=label,
             color=color,
             input_decorator=False,
             shape=shape,
         )
+        print(f"{bubble}\n")
         result = get_keypress()
         if result == "return":
             clear_console()
