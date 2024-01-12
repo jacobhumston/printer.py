@@ -723,7 +723,7 @@ class _InputCore:
         if result == "return":
             clear_console()
             return selected_option
-        if result == "down":
+        if result == "down" or result == "right":
             selected_option += 1
             if selected_option < 1 or selected_option > len(options):
                 selected_option -= 1
@@ -746,7 +746,7 @@ class _InputCore:
                     selected_option=selected_option,
                     hide_instructions=hide_instructions,
                 )
-        elif result == "up":
+        elif result == "up" or result == "left":
             selected_option -= 1
             if selected_option < 1 or selected_option > len(options):
                 selected_option += 1
