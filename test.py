@@ -1,6 +1,5 @@
-import dev_printer as p
+import printer as p
 
-
-
-i = p.input.hidden.str("please provide a message", "Something Idk", max=5)
+e = ["example option", "another example option", "ANOTHER example option", "meow", "lol", "haha", "ok", "AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH", "LOL"]
+i = p.Input.select("please select an option", e, "heyy", hide_instructions=True)
 print(i)
