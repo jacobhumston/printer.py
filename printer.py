@@ -186,6 +186,20 @@ AllColors = [
 "List of all colors, including reset."
 
 
+def add_custom_rgb_color(red: int, green: int, blue: int) -> Colors._ColorCore:
+    """Create a custom color using rgb. It's important to note that not all consoles support colors, let alone custom ones.
+    \n`red` `green` `blue` - The amount of r/g/b in the color respectfully.
+    """
+    color = Colors._ColorCore(f"\x1b[38;2;{red};{green};{blue}m")
+    AllColors.append(color)
+    return color
+
+
+def get_all_colors() -> list[Colors._ColorCore]:
+    """Returns a list of all currently available colors. Including custom ones."""
+    return AllColors
+
+
 def clear_console() -> None:
     "Clear the console."
     _os.system("cls" if _os.name == "nt" else "clear")
