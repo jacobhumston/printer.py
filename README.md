@@ -1,15 +1,4 @@
-# printer.py
-A python script which can be used for better logging and input.
+# printer.py 
 
-# Installation
-Copy the contents of `printer.py` and place it somewhere in your project.
+Reworking from scratch, see the old branch for the latest working version: https://github.com/jacobhumston/printer.py/tree/pre-v2
 
-# Example
-```python
-# Import some modules.
-import printer
-
-result = printer.betterInputOptions("hey how u doing?", ["first option", "second option??", "super cool option"], "pick an option")
-print(result)
-```
-![](/example.png)

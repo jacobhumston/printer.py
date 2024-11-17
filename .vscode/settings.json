@@ -1,9 +1,5 @@
 {
     "python.analysis.autoImportCompletions": true,
     "python.analysis.typeCheckingMode": "basic",
-    "cSpell.words": [
-        "getch",
-        "getwch"
-    ],
     "python.REPL.enableREPLSmartSend": false
 }
